@@ -573,7 +573,7 @@ void screen_showtopmenu(void) {
 	screen_showmainmenu(&mnuMainMenu);
 
 	// save actual config
-	system_savecfg("./prosystem.cfg");
+	system_savecfg(current_conf_app);
 }
 
 //----------------------------------------------------------------------

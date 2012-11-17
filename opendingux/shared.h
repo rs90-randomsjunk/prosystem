@@ -45,6 +45,7 @@ extern SDL_Event event;
 extern unsigned short bufVideo[320*312];
 extern gamecfg GameConf;
 extern char gameName[512];
+extern char current_conf_app[512];
 extern unsigned int gameCRC;
 extern uint video_height;
 extern int FPS , pastFPS; 
