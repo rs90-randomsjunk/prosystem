@@ -9,11 +9,7 @@ SYSROOT     := $(CHAINPREFIX)/usr/mipsel-buildroot-linux-uclibc/sysroot
 SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
 SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
 
-# define regarding OS, which compiler to use
-TARGET     = prosystem-od
-
-TOOLCHAIN = /opt/gcw0-toolchain/usr
-EXESUFFIX = .dge
+TARGET     = prosystem.dge
 
 # change compilation / linking flag options
 F_OPTS = -falign-functions -falign-loops -falign-labels -falign-jumps \
@@ -26,18 +22,18 @@ CFLAGS      = $(SDL_CFLAGS) -DOPENDINGUX $(CC_OPTS)
 LDFLAGS     = $(SDL_CFLAGS) $(CC_OPTS) -lSDL 
 
 # Files to be compiled
-SRCDIR    = ./emu/zlib  ./emu ./opendingux
-VPATH     = $(SRCDIR)
+SRCDIR  = ./emu/zlib ./emu ./opendingux
+VPATH   = $(SRCDIR)
 SRC_C   = $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
 OBJ_C   = $(notdir $(patsubst %.c, %.o, $(SRC_C)))
-OBJS     = $(OBJ_C)
+OBJS    = $(OBJ_C)
 
 # Rules to make executable
-$(TARGET)$(EXESUFFIX): $(OBJS)  
-	$(LD) $(LDFLAGS) -o $(TARGET)$(EXESUFFIX) $^
+$(TARGET): $(OBJS)
+	$(LD) $(LDFLAGS) -o $(TARGET) $^
 
 $(OBJ_C) : %.o : %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(TARGET)$(EXESUFFIX) *.o
+	rm -f $(TARGET) *.o
