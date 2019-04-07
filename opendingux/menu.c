@@ -229,7 +229,7 @@ typedef struct {
 	MENUITEM *m; // array of items
 } MENU;
 
-char mnuYesNo[2][16] = {"no", "yes"};
+char mnuYesNo[2][16] = {"No", "Yes"};
 char mnuButtons[17][16] = {
   "Input Right","Input Left","Input Down","Input Up","But #1","But #2",  // P1 
   "Input Right","Input Left","Input Down","Input Up","But #1","But #2",  // P2
@@ -256,11 +256,12 @@ MENUITEM ConfigMenuItems[] = {
 	{"Button Y: ", &GameConf.Dingoo_Joy[7], 16, (char *)  &mnuButtons, NULL},
 	{"Button R: ", &GameConf.Dingoo_Joy[8], 16, (char *)  &mnuButtons, NULL},
 	{"Button L: ", &GameConf.Dingoo_Joy[9], 16, (char *)  &mnuButtons, NULL},
-	{"START   : ", &GameConf.Dingoo_Joy[10], 16, (char *) &mnuButtons, NULL},
-	{"SELECT  : ", &GameConf.Dingoo_Joy[11], 16, (char *) &mnuButtons, NULL},
-	{"Return to menu", NULL, 0, NULL, &menuReturn},
+	{"   Start: ", &GameConf.Dingoo_Joy[10], 16, (char *) &mnuButtons, NULL},
+	{"  Select: ", &GameConf.Dingoo_Joy[11], 16, (char *) &mnuButtons, NULL},
+	// {"Return to menu", NULL, 0, NULL, &menuReturn},
 };
-MENU mnuConfigMenu = { 9, 0, (MENUITEM *) &ConfigMenuItems };
+MENU mnuConfigMenu = { sizeof(ConfigMenuItems)/sizeof(ConfigMenuItems[0]), 0, (MENUITEM *) &ConfigMenuItems };
+// MENU mnuConfigMenu = { 9, 0, (MENUITEM *) &ConfigMenuItems };
 
 //----------------------------------------------------------------------------------------------------
 #if 0
