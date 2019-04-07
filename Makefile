@@ -9,7 +9,7 @@ SYSROOT     := $(CHAINPREFIX)/usr/mipsel-buildroot-linux-uclibc/sysroot
 SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
 SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
 
-TARGET     = prosystem/prosystem.dge
+TARGET     = prosystem-od/prosystem-od.dge
 
 # change compilation / linking flag options
 F_OPTS = -falign-functions -falign-loops -falign-labels -falign-jumps \
@@ -34,6 +34,18 @@ $(TARGET): $(OBJS)
 
 $(OBJ_C) : %.o : %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+ipk: $(TARGET)
+	@rm -rf /tmp/.prosystem-od-ipk/ && mkdir -p /tmp/.prosystem-od-ipk/root/home/retrofw/emus/prosystem-od /tmp/.prosystem-od-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators /tmp/.prosystem-od-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators.systems
+	@cp -r prosystem-od/prosystem-od.dge prosystem-od/prosystem-od.png prosystem-od/7800.rom /tmp/.prosystem-od-ipk/root/home/retrofw/emus/prosystem-od
+	@cp prosystem-od/prosystem-od.lnk /tmp/.prosystem-od-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators
+	@cp prosystem-od/atari7800.prosystem-od.lnk /tmp/.prosystem-od-ipk/root/home/retrofw/apps/gmenu2x/sections/emulators.systems
+	@sed "s/^Version:.*/Version: $$(date +%Y%m%d)/" prosystem-od/control > /tmp/.prosystem-od-ipk/control
+	@cp prosystem-od/conffiles /tmp/.prosystem-od-ipk/
+	@tar --owner=0 --group=0 -czvf /tmp/.prosystem-od-ipk/control.tar.gz -C /tmp/.prosystem-od-ipk/ control conffiles
+	@tar --owner=0 --group=0 -czvf /tmp/.prosystem-od-ipk/data.tar.gz -C /tmp/.prosystem-od-ipk/root/ .
+	@echo 2.0 > /tmp/.prosystem-od-ipk/debian-binary
+	@ar r prosystem-od/prosystem-od.ipk /tmp/.prosystem-od-ipk/control.tar.gz /tmp/.prosystem-od-ipk/data.tar.gz /tmp/.prosystem-od-ipk/debian-binary
 
 clean:
 	rm -f $(TARGET) *.o

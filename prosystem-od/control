@@ -1,0 +1,10 @@
+Package: prosystem-od
+Version: 
+Description: RetroGame port of ProSystem-OD
+Section: emus
+Priority: optional
+Maintainer: pingflood
+Architecture: mipsel
+Homepage: https://github.com/pingflood/prosystem-od
+Depends:
+Source: https://github.com/pingflood/prosystem-od
