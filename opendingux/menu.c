@@ -479,7 +479,9 @@ void screen_showmainmenu(MENU *menu) {
 		// B - exit or back to previous menu
 		if (keys[SDLK_LALT] == SDL_PRESSED) { 
 			if (!keyb) {
-				keyb = 1; if (menu != &mnuMainMenu) gameMenu = false;
+				keyb = 1;
+				if (menu == &mnuMainMenu) menuContinue();
+				else gameMenu = false;
 			}
 		}
 		else keyb=0;
