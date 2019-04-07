@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
 				if (keys[SDLK_BACKSPACE] == SDL_PRESSED) { tchepres(8); } // KEYPAD ##
 				if (keys[SDLK_TAB] == SDL_PRESSED) { tchepres(9); } // KEYPAD #*
 			
-				if ((keys[SDLK_ESCAPE] == SDL_PRESSED) && (keys[SDLK_RETURN] == SDL_PRESSED )) { 
+				if (keys[SDLK_END] == SDL_PRESSED || ((keys[SDLK_ESCAPE] == SDL_PRESSED) && (keys[SDLK_RETURN] == SDL_PRESSED ))) { 
 					m_Flag = GF_MAINUI;
 				}
 				else if ( (keys[SDLK_RETURN] == SDL_PRESSED) )  { tchepres(10); }
