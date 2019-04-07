@@ -23,7 +23,7 @@ SDL_AudioSpec obtained;
 	
 uint sound_lenght;
 #define FEQSND 44100
-#define MAX_SAMPLE_SIZE 524
+#define MAX_SAMPLE_SIZE 512
 //(FEQSND/60)
 unsigned char a320_sound_emu[MAX_SAMPLE_SIZE];  // Sound buffer
 unsigned char rgBuffer[16*MAX_SAMPLE_SIZE];

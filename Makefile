@@ -9,7 +9,7 @@ SYSROOT     := $(CHAINPREFIX)/usr/mipsel-buildroot-linux-uclibc/sysroot
 SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
 SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
 
-TARGET     = prosystem.dge
+TARGET     = prosystem/prosystem.dge
 
 # change compilation / linking flag options
 F_OPTS = -falign-functions -falign-loops -falign-labels -falign-jumps \
@@ -17,7 +17,7 @@ F_OPTS = -falign-functions -falign-loops -falign-labels -falign-jumps \
 	-fomit-frame-pointer -fno-builtin -fno-common \
 	-fstrict-aliasing  -fexpensive-optimizations \
 	-finline -finline-functions -fpeel-loops
-CC_OPTS	= -O2 -mips32 -mhard-float -G0 -D_OPENDINGUX_ -D_VIDOD32_ $(F_OPTS)
+CC_OPTS	= -O2 -mips32 -mhard-float -G0 -D_OPENDINGUX_ $(F_OPTS)
 CFLAGS      = $(SDL_CFLAGS) -DOPENDINGUX $(CC_OPTS)
 LDFLAGS     = $(SDL_CFLAGS) $(CC_OPTS) -lSDL 
 
