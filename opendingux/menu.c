@@ -482,7 +482,7 @@ void screen_showmainmenu(MENU *menu) {
 			if (!keyb) {
 				keyb = 1;
 				if (menu == &mnuMainMenu) menuContinue();
-				else gameMenu = false;
+				else menu = &mnuMainMenu;
 			}
 		}
 		else keyb=0;
