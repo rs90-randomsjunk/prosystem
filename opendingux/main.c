@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
 	unsigned int index;
 
 	// Get init file directory & name
-	getcwd(current_conf_app, 512);
+	snprintf(current_conf_app, sizeof(current_conf_app), "%s/.race-od", getenv("HOME")); mkdir(current_conf_app, 0777);
 	sprintf(current_conf_app,"%s//prosystem.cfg",current_conf_app);
 	
 	initSDL();
