@@ -237,17 +237,17 @@ char mnuButtons[17][16] = {
 };
 
 MENUITEM MainMenuItems[] = {
-	{"Load rom", NULL, 0, NULL, &menuFileBrowse},
-	{"Continue", NULL, 0, NULL, &menuContinue},
-	{"Reset", NULL, 0, NULL, &menuReset},
 	{"Load state", NULL, 0, NULL, &menuLoadState},
 	{"Save state", NULL, 0, NULL, &menuSaveState},
-	{"Button Settings", NULL, 0, NULL, &screen_showkeymenu},
-	{"Take Screenshot", NULL, 0, NULL, &menuSaveBmp},
 	{"Show FPS: ", &GameConf.m_DisplayFPS, 1,(char *) &mnuYesNo, NULL},
+	// {"Load rom", NULL, 0, NULL, &menuFileBrowse},
+	// {"Continue", NULL, 0, NULL, &menuContinue},
+	{"Input Settings", NULL, 0, NULL, &screen_showkeymenu},
+	{"Reset", NULL, 0, NULL, &menuReset},
+	// {"Take Screenshot", NULL, 0, NULL, &menuSaveBmp},
 	{"Exit", NULL, 0, NULL, &menuQuit}
 };
-MENU mnuMainMenu = { 9, 0, (MENUITEM *) &MainMenuItems };
+MENU mnuMainMenu = { sizeof(MainMenuItems)/sizeof(MainMenuItems[0]), 0, (MENUITEM *) &MainMenuItems };
 
 MENUITEM ConfigMenuItems[] = {
 	{"Button A: ", &GameConf.Dingoo_Joy[4], 16, (char *)  &mnuButtons, NULL},
