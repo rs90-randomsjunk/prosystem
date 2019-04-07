@@ -986,7 +986,7 @@ void system_loadcfg(char *cfg_name) {
    
     GameConf.sndLevel=40;
     GameConf.m_ScreenRatio=1; // 0 = original show, 1 = full screen
-    GameConf.m_DisplayFPS=1; // 1 = yes
+    GameConf.m_DisplayFPS=0; // 1 = yes
 	getcwd(GameConf.current_dir_rom, MAX__PATH);
   }
 }
