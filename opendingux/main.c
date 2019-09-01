@@ -20,6 +20,7 @@
 
 */
 
+#include <unistd.h> 
 #include  <sys/time.h>
 
 #include "shared.h"
@@ -29,13 +30,18 @@
 #include "../emu/Sound.h"
 #include "../emu/Database.h"
 
+extern void screen_showtopmenu(void);
+extern void print_string_video(int x, int y, const char *s);
+
 unsigned int m_Flag;
 unsigned int interval;
 
 unsigned int gameCRC;
 gamecfg GameConf;
 char gameName[512];
+char home_path[512];
 char current_conf_app[512];
+char bios_filepath[512];
 
 unsigned long lastTick = 0, newTick;
 int FPS = 0, pastFPS = 0; 
@@ -47,8 +53,11 @@ SDL_Surface *video;
 SDL_Surface *layer,*layerback,*layerbackgrey;
 
 unsigned short bufVideo[320*312];
-unsigned short atari_pal16[256] = {0};
+#ifdef _VIDOD32_
 unsigned int atari_pal32[256] = {0};
+#else
+unsigned short atari_pal16[256] = {0};
+#endif
 
 SDL_Event event;
 
@@ -73,8 +82,8 @@ void SDL_ScaleSurface(void) {
 
 	x=0;
 	y=10<<16; // 26 (visible) - 16 (display)
-	W=320;
-	H=240;
+	W=video->w;
+	H=video->h;
 	ix=(320<<16)/W;
 	iy=(video_height<<16)/H;
 
@@ -83,7 +92,7 @@ void SDL_ScaleSurface(void) {
 	do   
 	{
 		unsigned short *buffer_mem=(bufVideo+((y>>16)*320));
-		W=320; x=0;
+		W=video->w; x=0;
 		do {
 #ifdef _VIDOD32_
 			*buffer_scr++=atari_pal32[buffer_mem[x>>16]];
@@ -105,7 +114,7 @@ void SDL_ScaleSurface(void) {
 			
 		}
 		sprintf(buffer,"%02d",FPS);
-		print_string_video(300,1,buffer);
+		print_string_video(0,1,buffer);
 	}
 
 	if (SDL_MUSTLOCK(video)) SDL_UnlockSurface(video);
@@ -126,7 +135,7 @@ void initSDL(void)
 	}
 	atexit(SDL_Quit);
 	
-	video = SDL_SetVideoMode(320, 240, vidbpp, SDL_DOUBLEBUF | SDL_HWSURFACE );
+	video = SDL_SetVideoMode(240, 160, vidbpp, SDL_DOUBLEBUF | SDL_HWSURFACE );
 	if(video == NULL) {
 		fprintf(stderr, "Couldn't set video mode: %s\n", SDL_GetError());
 		exit(1);
@@ -134,17 +143,17 @@ void initSDL(void)
 	SDL_ShowCursor(SDL_DISABLE);
 
 	// Init new layer to add background and text
-	layer = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 240, 16, 0,0,0,0);
+	layer = SDL_CreateRGBSurface(SDL_SWSURFACE, video->w, video->h, 16, 0,0,0,0);
 	if(layer == NULL) {
 		fprintf(stderr, "Couldn't create surface: %s\n", SDL_GetError());
 		exit(1);
 	}
-	layerback = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 240, 16, 0,0,0,0);
+	layerback = SDL_CreateRGBSurface(SDL_SWSURFACE, video->w, video->h, 16, 0,0,0,0);
 	if(layerback == NULL) {
 		fprintf(stderr, "Couldn't create surface: %s\n", SDL_GetError());
 		exit(1);
 	}
-	layerbackgrey = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 240, 16, 0,0,0,0);
+	layerbackgrey = SDL_CreateRGBSurface(SDL_SWSURFACE, video->w, video->h, 16, 0,0,0,0);
 	if(layerbackgrey == NULL) {
 		fprintf(stderr, "Couldn't create surface: %s\n", SDL_GetError());
 		exit(1);
@@ -156,8 +165,12 @@ int main(int argc, char *argv[]) {
 	unsigned int index;
 
 	// Get init file directory & name
-	snprintf(current_conf_app, sizeof(current_conf_app), "%s/.prosystem-od", getenv("HOME")); mkdir(current_conf_app, 0777);
-	sprintf(current_conf_app,"%s/prosystem-od.cfg",current_conf_app);
+	snprintf(home_path, sizeof(home_path), "%s/.prosystem-od", getenv("HOME"));
+	
+	snprintf(bios_filepath, sizeof(bios_filepath), "%s/7800.rom", current_conf_app);
+	
+	mkdir(current_conf_app, 0777);
+	snprintf(current_conf_app, sizeof(current_conf_app), "%s/.prosystem-od/prosystem-od.cfg", getenv("HOME"));
 	
 	initSDL();
 	sound_InitSDL();
@@ -190,7 +203,7 @@ int main(int argc, char *argv[]) {
 
 			case GF_GAMEINIT:
 				// Try to load bios
-				if (bios_Load("./7800.rom")) {
+				if (bios_Load(bios_filepath)) {
 					bios_enabled = true;
 				}
 				// load card game if ok
@@ -204,8 +217,11 @@ int main(int argc, char *argv[]) {
 						color.r = palette_data[(index * 3) + 0];
 						color.g = palette_data[(index * 3) + 1];
 						color.b = palette_data[(index * 3) + 2];
-						atari_pal16[index] = PIX_TO_RGB(video->format, color.r, color.g, color.b);
-						atari_pal32[index] = (color.r<<16) | (color.g<<8) | color.b;
+						#ifdef _VIDOD32_
+							atari_pal32[index] = (color.r<<16) | (color.g<<8) | color.b;
+						#else
+							atari_pal16[index] = PIX_TO_RGB(video->format, color.r, color.g, color.b);
+						#endif
 					}
 					m_Flag = GF_GAMERUNNING;
 
@@ -250,11 +266,11 @@ int main(int argc, char *argv[]) {
 				if (keys[SDLK_BACKSPACE] == SDL_PRESSED) { tchepres(8); } // KEYPAD ##
 				if (keys[SDLK_TAB] == SDL_PRESSED) { tchepres(9); } // KEYPAD #*
 			
-				if (keys[SDLK_END] == SDL_PRESSED || ((keys[SDLK_ESCAPE] == SDL_PRESSED) && (keys[SDLK_RETURN] == SDL_PRESSED ))) { 
+				if (keys[SDLK_END] == SDL_PRESSED || ((keys[SDLK_ESCAPE] == SDL_PRESSED))) { 
 					m_Flag = GF_MAINUI;
 				}
 				else if ( (keys[SDLK_RETURN] == SDL_PRESSED) )  { tchepres(10); }
-				else if ( (keys[SDLK_ESCAPE] == SDL_PRESSED) ) { tchepres(11); }
+				//else if ( (keys[SDLK_ESCAPE] == SDL_PRESSED) ) { tchepres(11); }
 
 				nextTick += interval;
 

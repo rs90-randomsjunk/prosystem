@@ -19,6 +19,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 */
+#include <unistd.h> 
 #include <dirent.h>
 
 #include "shared.h"
@@ -29,6 +30,7 @@
 #include "../emu/ProSystem.h"
 
 extern unsigned int m_Flag;
+extern char home_path[512];
 
 bool gameMenu;
 
@@ -237,12 +239,13 @@ char mnuButtons[17][16] = {
 };
 
 MENUITEM MainMenuItems[] = {
+	{"Continue", NULL, 0, NULL, &menuContinue},
 	{"Load state", NULL, 0, NULL, &menuLoadState},
 	{"Save state", NULL, 0, NULL, &menuSaveState},
 	{"Show FPS: ", &GameConf.m_DisplayFPS, 1,(char *) &mnuYesNo, NULL},
 	// {"Load rom", NULL, 0, NULL, &menuFileBrowse},
-	// {"Continue", NULL, 0, NULL, &menuContinue},
-	{"Input Settings", NULL, 0, NULL, &screen_showkeymenu},
+	// 
+	//{"Input Settings", NULL, 0, NULL, &screen_showkeymenu},
 	{"Reset", NULL, 0, NULL, &menuReset},
 	// {"Take Screenshot", NULL, 0, NULL, &menuSaveBmp},
 	{"Exit", NULL, 0, NULL, &menuQuit}
@@ -262,57 +265,6 @@ MENUITEM ConfigMenuItems[] = {
 };
 MENU mnuConfigMenu = { sizeof(ConfigMenuItems)/sizeof(ConfigMenuItems[0]), 0, (MENUITEM *) &ConfigMenuItems };
 // MENU mnuConfigMenu = { 9, 0, (MENUITEM *) &ConfigMenuItems };
-
-//----------------------------------------------------------------------------------------------------
-#if 0
-void screen_drawpixel(SDL_Surface *s, unsigned int x, unsigned int y, unsigned int color) {
-	unsigned int bpp, ofs;
-
-	bpp = s->format->BytesPerPixel;
-	ofs = s->pitch*y + x*bpp;
-
-	memcpy(s->pixels + ofs, &color, bpp);
-}
-
-// Basic Bresenham line algorithm
-static void SDL_DrawLine(SDL_Surface *s, unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2, unsigned int color) {
-#define SGN(x) ((x)>0 ? 1 : ((x)==0 ? 0:(-1)))
-#define ABS(x) ((x)>0 ? (x) : (-x))
-
-	int lg_delta, sh_delta, cycle, lg_step, sh_step;
-
-	lg_delta = x2 - x1;
-	sh_delta = y2 - y1;
-	lg_step = SGN(lg_delta);
-	lg_delta = ABS(lg_delta);
-	sh_step = SGN(sh_delta);
-	sh_delta = ABS(sh_delta);
-	if (sh_delta < lg_delta) {
-		cycle = lg_delta >> 1;
-		while (x1 != x2) {
-			screen_drawpixel(s, x1, y1, color);
-			cycle += sh_delta;
-			if (cycle > lg_delta) {
-				cycle -= lg_delta;
-				y1 += sh_step;
-			}
-			x1 += lg_step;
-		}
-		screen_drawpixel(s, x1, y1, color);
-	}
-	cycle = sh_delta >> 1;
-	while (y1 != y2) {
-		screen_drawpixel(s, x1, y1, color);
-		cycle += lg_delta;
-		if (cycle > sh_delta) {
-			cycle -= sh_delta;
-			x1 += lg_step;
-		}
-		y1 += sh_step;
-	}
-	screen_drawpixel(s, x1, y1, color);
-}
-#endif
 
 //----------------------------------------------------------------------------------------------------
 // Prints char on a given surface
@@ -544,12 +496,10 @@ void screen_showmainmenu(MENU *menu) {
 			screen_showmenu(menu); // show menu items
 			if (menu == &mnuMainMenu) {
 				if (cartridge_IsLoaded()) {
-#ifdef _OPENDINGUX_
+					/*
 					sprintf(szVal,"Game:%s",strrchr(gameName,'/')+1);szVal[38] = '\0'; 
-#else
-					sprintf(szVal,"Game:%s",strrchr(gameName,'\\')+1);szVal[38] = '\0'; 
-#endif
 					print_string(szVal, COLOR_LIGHT,COLOR_BG, 8,240-2-10-10);
+					*/
 					sprintf(szVal,"CRC:%08X",gameCRC); 
 					print_string(szVal, COLOR_LIGHT, COLOR_BG,8,240-2-10);
 					if (isSta) print_string("Load state available",COLOR_INFO, COLOR_BG,8+104,240-2-10);
@@ -580,18 +530,21 @@ void screen_showtopmenu(void) {
 }
 
 //----------------------------------------------------------------------
-int system_is_load_state(void) {
+int system_is_load_state(void) 
+{
+	FILE* fd;
 	char name[512];
-	int fd;
 	int n=0;
   
-	strcpy(name, gameName);
-	strcpy(strrchr(name, '.'), ".sta");
+	//strcpy(name, gameName);
+	//strcpy(strrchr(name, '.'), ".sta");
+	
+	snprintf(name, sizeof(name), "%s/%s.sta", home_path, gameName);
 
-	fd = open(name, O_RDONLY | O_BINARY);
-	if (fd >= 0) {
+	fd = fopen(name, "rb");
+	if (fd) {
 		n = 1;
-		close(fd);
+		fclose(fd);
 	}
 	
 	return (n ? 1 : 0);
@@ -600,17 +553,17 @@ int system_is_load_state(void) {
 // find a filename for bmp or state saving 
 void findNextFilename(char *szFileFormat, char *szFilename) {
 	uint32_t uBcl;
-	int fp;
+	FILE* fp;
   
 	for (uBcl = 0; uBcl<999; uBcl++) {
 		sprintf(szFilename,szFileFormat,uBcl);
-		fp = open(szFilename,O_RDONLY | O_BINARY);
-		if (fp <0) break;
-		close(fp);
+		fp = fopen(szFilename, "rb");
+		if (!fp) break;
+		fclose(fp);
 	}
 	if (uBcl == 1000)
 		strcpy(szFilename,"NOSLOT");
-	if (fp>=0) close(fp);
+	if (fp) fclose(fp);
 }
 
 // Reset current game
@@ -787,11 +740,7 @@ signed int load_file(char **wildcards, char *result) {
 					else {
 						repeat = 0;
 						return_value = 0;
-#ifdef _OPENDINGUX_
 						sprintf(result, "%s/%s", current_dir_name, filedir_list[current_filedir_selection].name);
-#else
-						sprintf(result, "%s\\%s", current_dir_name, filedir_list[current_filedir_selection].name);
-#endif
 					}
 				}
 			}
@@ -929,8 +878,8 @@ void menuSaveState(void) {
     char szFile[512];
 	
 	if (cartridge_IsLoaded()) {
-		strcpy(szFile, gameName);
-		strcpy(strrchr(szFile, '.'), ".sta");
+		snprintf(szFile, sizeof(szFile), "%s/%s.sta", home_path, gameName);
+		printf("szFile %s\n", szFile);
 		print_string("Saving...", COLOR_OK, COLOR_BG, 8,240-5 -10*3);
 		if (prosystem_Save(szFile,false) == 1)
 			print_string("Save OK",COLOR_OK,COLOR_BG, 8+10*8,240-5 -10*3);
@@ -946,8 +895,7 @@ void menuLoadState(void) {
     char szFile[512];
 	
 	if (cartridge_IsLoaded()) {
-		strcpy(szFile, gameName);
-		strcpy(strrchr(szFile, '.'), ".sta");
+		snprintf(szFile, sizeof(szFile), "%s/%s.sta", home_path, gameName);
 		print_string("Loading...", COLOR_OK, COLOR_BG, 8,240-5 -10*3);
 		if (prosystem_Load(szFile) == 1)
 			print_string("Load OK",COLOR_OK,COLOR_BG, 8+10*8,240-5 -10*3);
@@ -966,37 +914,39 @@ void menuReturn(void) {
 }
 
 
-void system_loadcfg(char *cfg_name) {
-  int fd;
-
-  fd = open(cfg_name, O_RDONLY | O_BINARY);
-  if (fd >= 0) {
-	read(fd, &GameConf, sizeof(GameConf));
-    close(fd);
-  }
-  else {
-    // UP  DOWN  LEFT RIGHT  A  B   X  Y    R  L     START  SELECT
-    // 2,    3,    1,    0,  4, 5, 12, 12, 15, 16,     14,      13
-    GameConf.Dingoo_Joy[ 0] = 3;  GameConf.Dingoo_Joy[ 1] = 2;
-    GameConf.Dingoo_Joy[ 2] = 1;  GameConf.Dingoo_Joy[ 3] = 0;
-    GameConf.Dingoo_Joy[ 4] = 4;  GameConf.Dingoo_Joy[ 5] = 5;
-    GameConf.Dingoo_Joy[ 6] = 12;  GameConf.Dingoo_Joy[ 7] = 12;
-    GameConf.Dingoo_Joy[ 8] = 15; GameConf.Dingoo_Joy[ 9] = 16;
-    GameConf.Dingoo_Joy[10] = 14;  GameConf.Dingoo_Joy[11] = 13;
-   
-    GameConf.sndLevel=40;
-    GameConf.m_ScreenRatio=1; // 0 = original show, 1 = full screen
-    GameConf.m_DisplayFPS=0; // 1 = yes
-	getcwd(GameConf.current_dir_rom, MAX__PATH);
-  }
+void system_loadcfg(char *cfg_name) 
+{
+	FILE* fd;
+	fd = fopen(cfg_name, "rb");
+	if (fd) 
+	{
+		fread(&GameConf, sizeof(uint8_t), sizeof(GameConf), fd);
+		fclose(fd);
+	}
+	else 
+	{
+		// UP  DOWN  LEFT RIGHT  A  B   X  Y    R  L     START  SELECT
+		// 2,    3,    1,    0,  4, 5, 12, 12, 15, 16,     14,      13
+		GameConf.Dingoo_Joy[ 0] = 3;  GameConf.Dingoo_Joy[ 1] = 2;
+		GameConf.Dingoo_Joy[ 2] = 1;  GameConf.Dingoo_Joy[ 3] = 0;
+		GameConf.Dingoo_Joy[ 4] = 4;  GameConf.Dingoo_Joy[ 5] = 5;
+		GameConf.Dingoo_Joy[ 6] = 12;  GameConf.Dingoo_Joy[ 7] = 12;
+		GameConf.Dingoo_Joy[ 8] = 15; GameConf.Dingoo_Joy[ 9] = 16;
+		GameConf.Dingoo_Joy[10] = 14;  GameConf.Dingoo_Joy[11] = 13;
+	   
+		GameConf.sndLevel=40;
+		GameConf.m_ScreenRatio=1; // 0 = original show, 1 = full screen
+		GameConf.m_DisplayFPS=0; // 1 = yes
+		getcwd(GameConf.current_dir_rom, MAX__PATH);
+	}
 }
 
 void system_savecfg(char *cfg_name) {
-  int fd;
-  
-  fd = open(cfg_name, O_CREAT | O_RDWR | O_BINARY | O_TRUNC, S_IREAD | S_IWRITE);
-  if (fd >= 0) {
-    write(fd, &GameConf, sizeof(GameConf)); 
-    close(fd);
- }
+	FILE* fd;
+	fd = fopen(cfg_name, "wb");
+	if (fd) 
+	{
+		fwrite(&GameConf, sizeof(uint8_t), sizeof(GameConf), fd);
+		fclose(fd);
+	}
 }

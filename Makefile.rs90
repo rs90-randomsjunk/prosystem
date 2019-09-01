@@ -1,21 +1,16 @@
-CHAINPREFIX=
-CROSS_COMPILE=
-
-CC = $(CROSS_COMPILE)gcc
-CXX = $(CROSS_COMPILE)g++
-LD = $(CROSS_COMPILE)gcc
+CC = /opt/rs90-toolchain/bin/mipsel-linux-gcc
 
 SYSROOT     := 
-SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
-SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
+SDL_CFLAGS  := $(shell /opt/rs90-toolchain/mipsel-rs90-linux-musl/sysroot/usr/bin/sdl-config --cflags)
+SDL_LIBS    := $(shell /opt/rs90-toolchain/mipsel-rs90-linux-musl/sysroot/usr/bin/sdl-config --libs)
 
 TARGET     = prosystem-od/prosystem-od.dge
 
 # change compilation / linking flag options
 F_OPTS = 
-CC_OPTS	= -O0 -g3 -D_OPENDINGUX_ $(F_OPTS)
+CC_OPTS	= -Ofast -flto -fprofile-use -D_OPENDINGUX_ $(F_OPTS)
 CFLAGS      = $(SDL_CFLAGS) -DOPENDINGUX $(CC_OPTS)
-LDFLAGS     = $(SDL_CFLAGS) $(CC_OPTS) -lSDL 
+LDFLAGS     = -lc -lgcc -lSDL -lasound -flto -s
 
 # Files to be compiled
 SRCDIR  = ./emu/zlib ./emu ./opendingux
@@ -26,7 +21,7 @@ OBJS    = $(OBJ_C)
 
 # Rules to make executable
 $(TARGET): $(OBJS)
-	$(LD) $(LDFLAGS) -o $(TARGET) $^
+	$(CC) $(CFLAGS) -o $(TARGET) $^ $(LDFLAGS)
 
 $(OBJ_C) : %.o : %.c
 	$(CC) $(CFLAGS) -c -o $@ $<

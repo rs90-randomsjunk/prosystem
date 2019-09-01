@@ -1,0 +1,32 @@
+#!/bin/sh
+
+mkdir -p opk
+cp ./prosystem-od.dge opk/prosystem-od
+cp ./prosystem-od.png opk/prosystem-od.png
+cp ./License.txt opk/COPYING
+
+# https://unix.stackexchange.com/questions/219268/how-to-add-new-lines-when-using-echo
+print()
+	case    ${IFS- } in
+	(\ *)   printf  %b\\n "$*";;
+	(*)     IFS=\ $IFS
+	printf  %b\\n "$*"
+	IFS=${IFS#?}
+esac
+
+# Create GmenuNx entry file plus other things
+
+print '[Desktop Entry]
+Type=Application
+Name=ProSystem
+Comment=Atari 7800 emulator
+Exec=prosystem-od %f
+Icon=prosystem-od
+Terminal=false
+Type=Application
+Categories=emulators;
+X-OD-NeedsDownscaling=false' > opk/default."$1".desktop
+
+mksquashfs ./opk prosystem_"$1".opk -all-root -noappend -no-exports -no-xattrs
+
+rm -r opk

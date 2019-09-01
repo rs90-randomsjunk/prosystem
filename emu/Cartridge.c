@@ -41,6 +41,8 @@ uint cartridge_flags;
 static byte* cartridge_buffer = NULL;
 static uint cartridge_size = 0;
 
+extern unsigned long crc32 (unsigned int crc, const unsigned char *buf, unsigned int len);
+
 // ----------------------------------------------------------------------------
 // HasHeader
 // ----------------------------------------------------------------------------
@@ -168,7 +170,9 @@ static bool _cartridge_Load(const byte* data, uint size) {
 // ----------------------------------------------------------------------------
 // Load
 // ----------------------------------------------------------------------------
-bool cartridge_Load(char *filename) {
+bool cartridge_Load(char *filename) 
+{
+	FILE* file;
   if(strlen(filename) == 0) {
 	fprintf(stderr,"Cartridge filename is invalid.");
     //logger_LogError("Cartridge filename is invalid.", CARTRIDGE_SOURCE);
@@ -181,46 +185,29 @@ bool cartridge_Load(char *filename) {
   byte* data = NULL;
   uint size = archive_GetUncompressedFileSize(filename);
   if(size == 0) {
-    int file = open(filename, O_RDONLY | O_BINARY);
+	file = fopen(filename, "rb");
     if (file < 0) {
       fprintf(stderr,"Failed to open the cartridge file %s for reading", filename);
-      //logger_LogError("Failed to open the cartridge file " + filename + " for reading.", CARTRIDGE_SOURCE);
       return false;  
     }
-
-#if 0
-    if(lseek(file, 0L, SEEK_END) <0) {
-      close(file);
-      //logger_LogError("Failed to find the end of the cartridge file.", CARTRIDGE_SOURCE);
-      return false;
-    }
-    size = ftell(file);
-    if(lseek(file, 0L, SEEK_SET)<0) {
-      close(file);
-      //logger_LogError("Failed to find the size of the cartridge file.", CARTRIDGE_SOURCE);
-      return false;
-    }
-#endif
 
 	struct stat fileStat;
     if (stat(filename,&fileStat) < 0)  {
       fprintf(stderr,"Failed to find the size of the cartridge file.");
-      //logger_LogError("Failed to find the size of the cartridge file.", CARTRIDGE_SOURCE);
       return false;
     }
 	
 	size = fileStat.st_size;
     data = (char *) malloc(size);
-    if( (read(file, (char *) data, size) < 0) /*&& ferror(file)*/) {
-      close(file);
+    if(fread((char *) data, sizeof(uint8_t), size, file) < 0) {
+      fclose(file);
 	  fprintf(stderr,"Failed to read the cartridge data.");
-      //logger_LogError("Failed to read the cartridge data.", CARTRIDGE_SOURCE);
       cartridge_Release( );
       free(data);
       return false;
     }    
 
-    close(file);    
+    fclose(file);    
   }
   else {
     data = (char *) malloc(size);
@@ -229,7 +216,6 @@ bool cartridge_Load(char *filename) {
 
   if(!_cartridge_Load(data, size)) {
 	  fprintf(stderr,"Failed to load the cartridge data into memory.\n");
-    //logger_LogError("Failed to load the cartridge data into memory.", CARTRIDGE_SOURCE);
     free(data);
     return false;
   }

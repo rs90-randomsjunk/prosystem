@@ -1,6 +1,0 @@
-title=ProSystem-OD
-description=Atari 7800 Emulator
-exec=/home/retrofw/emus/prosystem-od/prosystem-od.dge
-selectordir=/home/retrofw/roms/atari7800
-selectorfilter=.a78,.bin
-clock=600

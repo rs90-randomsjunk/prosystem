@@ -2,3 +2,9 @@
 *.ipk
 *.opk
 *.dge
+*.a78
+*.gcda
+*.o
+*.bin
+*.elf
+*.sta
