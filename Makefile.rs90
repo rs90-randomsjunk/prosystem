@@ -5,12 +5,21 @@ SDL_CFLAGS  := $(shell /opt/rs90-toolchain/mipsel-rs90-linux-musl/sysroot/usr/bi
 SDL_LIBS    := $(shell /opt/rs90-toolchain/mipsel-rs90-linux-musl/sysroot/usr/bin/sdl-config --libs)
 
 TARGET     = prosystem-od/prosystem-od.dge
+PROFILE = APPLY
 
 # change compilation / linking flag options
-F_OPTS = 
-CC_OPTS	= -Ofast -flto -fprofile-use -D_OPENDINGUX_ $(F_OPTS)
-CFLAGS      = $(SDL_CFLAGS) -DOPENDINGUX $(CC_OPTS)
-LDFLAGS     = -lc -lgcc -lSDL -lasound -flto -s
+CC_OPTS = -Ofast -fdata-sections -ffunction-sections -mno-fp-exceptions -mno-check-zero-division -mframe-header-opt -fno-common -flto -fsingle-precision-constant -march=mips32 -mtune=mips32
+CC_OPTS	+= -falign-functions=1 -falign-jumps=1 -falign-loops=1 -falign-labels=1
+LDFLAGS  = -lc -lgcc -lSDL -lasound -flto -s
+
+ifeq ($(PROFILE), YES)
+CC_OPTS 	+= -fprofile-generate="/media/data/local/home"
+LDFLAGS  	+= -lgcov
+else ifeq ($(PROFILE), APPLY)
+CC_OPTS		+= -fprofile-use -fbranch-probabilities
+endif
+
+CFLAGS  = $(SDL_CFLAGS) -DOPENDINGUX $(CC_OPTS)
 
 # Files to be compiled
 SRCDIR  = ./emu/zlib ./emu ./opendingux
