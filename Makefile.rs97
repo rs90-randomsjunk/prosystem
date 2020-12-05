@@ -1,14 +1,14 @@
-CC = /opt/rs90-toolchain/bin/mipsel-linux-gcc
+CC = /opt/rs97-toolchain/bin/mipsel-linux-gcc
 
 SYSROOT     := 
-SDL_CFLAGS  := $(shell /opt/rs90-toolchain/mipsel-rs90-linux-musl/sysroot/usr/bin/sdl-config --cflags)
-SDL_LIBS    := $(shell /opt/rs90-toolchain/mipsel-rs90-linux-musl/sysroot/usr/bin/sdl-config --libs)
+SDL_CFLAGS  := $(shell /opt/rs97-toolchain/mipsel-buildroot-linux-musl/sysroot/usr/bin/sdl-config --cflags)
+SDL_LIBS    := $(shell /opt/rs97-toolchain/mipsel-buildroot-linux-musl/sysroot/usr/bin/sdl-config --libs)
 
 TARGET     = prosystem-od.dge
 PROFILE = 0
 
 # change compilation / linking flag options
-CFLAGS	= -Ofast -fdata-sections -ffunction-sections -mno-fp-exceptions -mno-check-zero-division -mframe-header-opt -fno-common -flto -fsingle-precision-constant -march=mips32 -mtune=mips32 -fno-PIC -mplt -mno-shared
+CFLAGS	= -Ofast -fdata-sections -ffunction-sections -mno-fp-exceptions -mno-check-zero-division -mframe-header-opt -fno-common -flto -fsingle-precision-constant -march=mips32 -mtune=mips32 -fno-PIC -mno-abicalls -mno-shared
 LDFLAGS	= -lc -lgcc -lSDL -flto -Wl,-z,norelro -Wl,--hash-style=gnu -Wl,--build-id=none -Wl,-O1,--sort-common,--as-needed,--gc-sections -no-pie -flto -s
 
 ifeq ($(PROFILE), YES)
@@ -21,7 +21,7 @@ else
 LDFLAGS += -nodefaultlibs
 endif
 
-CFLAGS  += -DOPENDINGUX -DRS90 $(SDL_CFLAGS) 
+CFLAGS  += -DOPENDINGUX $(SDL_CFLAGS) 
 
 # Files to be compiled
 SRCDIR  = ./emu/zlib ./emu ./opendingux

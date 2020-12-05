@@ -121,7 +121,7 @@ void sound_InitSDL(void) {
 	
 	if (SDL_OpenAudio(&spec, &obtained) < 0) {
 		fprintf(stderr, "Couldn't start audio: %s\n", SDL_GetError());
-		exit(1);
+		//exit(1);
 	}
 
 	rgproduced = rgconsumed = 0;

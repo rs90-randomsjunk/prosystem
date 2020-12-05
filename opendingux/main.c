@@ -30,6 +30,10 @@
 #include "../emu/Sound.h"
 #include "../emu/Database.h"
 
+#ifndef SDL_TRIPLEBUF
+#define SDL_TRIPLEBUF SDL_DOUBLEBUF
+#endif
+
 extern void screen_showtopmenu(void);
 extern void print_string_video(int x, int y, const char *s);
 
@@ -135,7 +139,11 @@ void initSDL(void)
 	}
 	atexit(SDL_Quit);
 	
+#ifdef RS90
 	video = SDL_SetVideoMode(240, 160, vidbpp, SDL_DOUBLEBUF | SDL_HWSURFACE );
+#else
+	video = SDL_SetVideoMode(320, 240, vidbpp, SDL_TRIPLEBUF | SDL_HWSURFACE );
+#endif
 	if(video == NULL) {
 		fprintf(stderr, "Couldn't set video mode: %s\n", SDL_GetError());
 		exit(1);
@@ -279,17 +287,20 @@ int main(int argc, char *argv[]) {
 	}
     
 	SDL_PauseAudio(1);
+	SDL_CloseAudio();
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 	prosystem_Close();
 	
 	// Free memory
-	SDL_FreeSurface(layerbackgrey);
-	SDL_FreeSurface(layerback);
-	SDL_FreeSurface(layer);
-	SDL_FreeSurface(video);
+	if (layerbackgrey) SDL_FreeSurface(layerbackgrey);
+	if (layerback) SDL_FreeSurface(layerback);
+	if (layer) SDL_FreeSurface(layer);
+	if (video) SDL_FreeSurface(video);
 	
-	SDL_QuitSubSystem(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
+	SDL_Quit();
 	
-	exit(0);
+	return 0;
 }
 
 #define DO1(buf) crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);

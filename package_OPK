@@ -1,8 +1,8 @@
 #!/bin/sh
 
 mkdir -p opk
-cp ./stella-od.elf opk/stella-od
-cp ./stella.png opk/stella.png
+cp ./prosystem-od.dge opk/prosystem-od.dge
+cp ./icon.png opk/icon.png
 cp ./License.txt opk/COPYING
 
 # https://unix.stackexchange.com/questions/219268/how-to-add-new-lines-when-using-echo
@@ -18,15 +18,15 @@ esac
 
 print '[Desktop Entry]
 Type=Application
-Name=Stella
-Comment=Atari 2600 emulator
-Exec=stella-od %f
-Icon=stella
+Name=Prosystem
+Comment=Atari 7800 emulator
+Exec=prosystem-od.dge %f
+Icon=icon
 Terminal=false
 Type=Application
 Categories=emulators;
 X-OD-NeedsDownscaling=false' > opk/default."$1".desktop
 
-mksquashfs ./opk stella_"$1".opk -all-root -noappend -no-exports -no-xattrs
+mksquashfs ./opk prosystem_"$1".opk -all-root -noappend -no-exports -no-xattrs
 
 rm -r opk

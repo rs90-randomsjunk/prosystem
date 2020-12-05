@@ -9,7 +9,7 @@ SYSROOT     :=
 SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
 SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
 
-TARGET     = prosystem-od/prosystem-od.dge
+TARGET     = prosystem-od.dge
 
 # change compilation / linking flag options
 F_OPTS = 
