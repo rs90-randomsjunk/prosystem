@@ -21,7 +21,7 @@ else
 LDFLAGS += -nodefaultlibs
 endif
 
-CFLAGS  += -DOPENDINGUX $(SDL_CFLAGS) 
+CFLAGS  += -DOPENDINGUX -D_OPENDINGUX_ $(SDL_CFLAGS) 
 
 # Files to be compiled
 SRCDIR  = ./emu/zlib ./emu ./opendingux
