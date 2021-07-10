@@ -141,6 +141,8 @@ void initSDL(void)
 	
 #ifdef RS90
 	video = SDL_SetVideoMode(240, 160, vidbpp, SDL_DOUBLEBUF | SDL_HWSURFACE );
+#elif defined(FUNKEY)
+	video = SDL_SetVideoMode(240, 240, vidbpp, SDL_DOUBLEBUF | SDL_HWSURFACE );
 #else
 	video = SDL_SetVideoMode(320, 240, vidbpp, SDL_TRIPLEBUF | SDL_HWSURFACE );
 #endif
@@ -274,7 +276,7 @@ int main(int argc, char *argv[]) {
 				if (keys[SDLK_BACKSPACE] == SDL_PRESSED) { tchepres(8); } // KEYPAD ##
 				if (keys[SDLK_TAB] == SDL_PRESSED) { tchepres(9); } // KEYPAD #*
 			
-				if (keys[SDLK_END] == SDL_PRESSED || ((keys[SDLK_ESCAPE] == SDL_PRESSED))) { 
+				if (keys[SDLK_END] == SDL_PRESSED || keys[SDLK_HOME] == SDL_PRESSED || ((keys[SDLK_ESCAPE] == SDL_PRESSED))) { 
 					m_Flag = GF_MAINUI;
 				}
 				else if ( (keys[SDLK_RETURN] == SDL_PRESSED) )  { tchepres(10); }

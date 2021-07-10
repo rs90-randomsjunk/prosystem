@@ -1,0 +1,41 @@
+CC = /opt/rs90-toolchain/bin/mipsel-linux-gcc
+
+SYSROOT     := 
+SDL_CFLAGS  := $(shell /opt/rs90-toolchain/mipsel-rs90-linux-musl/sysroot/usr/bin/sdl-config --cflags)
+SDL_LIBS    := $(shell /opt/rs90-toolchain/mipsel-rs90-linux-musl/sysroot/usr/bin/sdl-config --libs)
+
+TARGET     = prosystem-od.dge
+PROFILE = APPLY
+
+# change compilation / linking flag options
+CFLAGS	= -Ofast -fdata-sections -ffunction-sections -mno-fp-exceptions -mno-check-zero-division -mframe-header-opt -fno-common -flto -fsingle-precision-constant -march=mips32 -mtune=mips32 -fno-PIC -mplt -mno-shared
+LDFLAGS	= -nodefaultlibs -lc -lgcc -lSDL -flto -Wl,-O1,--sort-common,--as-needed,--gc-sections -no-pie -flto -s
+
+ifeq ($(PROFILE), YES)
+CFLAGS 		+= -fprofile-generate="/media/mmcblk0p1/pro_gcda"
+LDFLAGS += -lgcov
+else ifeq ($(PROFILE), APPLY)
+CFLAGS	+= -fprofile-use="./"
+LDFLAGS += -nodefaultlibs
+else
+LDFLAGS += -nodefaultlibs
+endif
+
+CFLAGS  += -DOPENDINGUX $(SDL_CFLAGS) 
+
+# Files to be compiled
+SRCDIR  = ./emu/zlib ./emu ./opendingux
+VPATH   = $(SRCDIR)
+SRC_C   = $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
+OBJ_C   = $(notdir $(patsubst %.c, %.o, $(SRC_C)))
+OBJS    = $(OBJ_C)
+
+# Rules to make executable
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $^ $(LDFLAGS)
+
+$(OBJ_C) : %.o : %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+clean:
+	rm -f $(TARGET) *.o
